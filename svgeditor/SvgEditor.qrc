@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/SvgEditor">
+        <file>Icon/Ellipse.png</file>
+        <file>Icon/Hexagon.png</file>
+        <file>Icon/Line.png</file>
+        <file>Icon/Mouse.png</file>
+        <file>Icon/Path.png</file>
+        <file>Icon/Pentagon.png</file>
+        <file>Icon/Rect.png</file>
+        <file>Icon/Star.png</file>
+    </qresource>
+</RCC>
