@@ -8,25 +8,25 @@
 
 class SvgEditor : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    SvgEditor(QWidget *parent = nullptr);
-    ~SvgEditor();
+	SvgEditor(QWidget* parent = nullptr);
+	~SvgEditor();
 public slots:
-    void newFile();
-    void openFile();
-    void saveFile();
-    void saveFileToPng();
+	void newFile();
+	void openFile();
+	void saveFile();
+	void saveFileToPng();
 protected:
-    void setLeftToobar();
-    void setTopMenuBar();
-    QWidget* DateSetting();
-    void parseSvg(QFile* file);
-    virtual bool eventFilter(QObject* watched, QEvent* event) override;
+	void setLeftToobar();
+	void setTopMenuBar();
+	QWidget* getDatePanel();
+	void parseSvg(QFile* file);
+	virtual bool eventFilter(QObject* watched, QEvent* event) override;
 private:
-    Ui::SvgEditorClass ui;
-    Canvas* m_canvas;
+	Ui::SvgEditorClass ui;
+	Canvas* m_canvas;
 
 };
 

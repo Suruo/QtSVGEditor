@@ -10,19 +10,19 @@
 Canvas::Canvas(QWidget* parent = Q_NULLPTR)
 	: QWidget(parent)
 	, m_manager(std::make_shared<Manager>())
-	, m_pressed(false)
-	, m_creating(false)
-	, m_resizing(false)
-	, m_moving(false)
-	, m_movestart(QPointF())
+	, m_isPressed(false)
+	, m_isCreating(false)
+	, m_isResizing(false)
+	, m_isMoving(false)
+	, m_moveStartPos(QPointF())
 	, m_type(Type::None)
 	, m_edge(Edge::NoEdge)
 	, m_scale(1)
 	, m_history(CommandHistory::getInstance())
-	, m_rubberband(new QRubberBand(QRubberBand::Rectangle, this))
+	, m_rubberBand(new QRubberBand(QRubberBand::Rectangle, this))
 {
 	setMouseTracking(true);
-	setFixedSize(700, 500);
+	setFixedSize(1600, 900);
 	setAutoFillBackground(true);
 	setPalette(QPalette(QPalette::Window, Qt::white));
 }
@@ -108,7 +108,7 @@ std::string Canvas::toSvgText() const
 			+ "\" xmlns=\"http://www.w3.org/2000/svg\">\n" + m_manager->toSvgElements() + "</svg>";
 	}
 }
-	
+
 
 void Canvas::selectAll()
 {
@@ -177,53 +177,53 @@ void Canvas::mouseMoveEvent(QMouseEvent* event)
 }
 void Canvas::mouseReleaseEvent(QMouseEvent* event)
 {
-	m_pressed = false;
-	m_creating = false;
-	m_resizing = false;
-	m_moving = false;
-	m_rubberband->hide();
+	m_isPressed = false;
+	m_isCreating = false;
+	m_isResizing = false;
+	m_isMoving = false;
+	m_rubberBand->hide();
 	return QWidget::mouseReleaseEvent(event);
 }
 void Canvas::leftButtonPressed(const QPointF& pos)
 {
-	m_pressed = true;
+	m_isPressed = true;
 	if (m_type != Type::None)
 	{
 		m_manager->cancelSelected();
 		m_manager->addItem(m_type, pos);
-		m_creating = true;
+		m_isCreating = true;
 	}
 	else if (!m_manager->isItemAt(pos))
 	{
 		m_manager->cancelSelected();
-		m_movestart = pos;
-		m_rubberband->setGeometry(QRect((m_movestart * m_scale).toPoint(), QSize()));
-		m_rubberband->show();
+		m_moveStartPos = pos;
+		m_rubberBand->setGeometry(QRect((m_moveStartPos * m_scale).toPoint(), QSize()));
+		m_rubberBand->show();
 	}
 	else if (!m_manager->isAnyOneSelected() || !m_manager->isOnlyOneSelected())
 	{
 		if (!m_manager->isAnyOneSelected())
 			m_manager->selectItemAt(pos);
-		m_moving = true;
-		m_movestart = pos;
+		m_isMoving = true;
+		m_moveStartPos = pos;
 	}
 	else
 	{
 		m_manager->selectItemAt(pos);
 		if (m_edge != Edge::NoEdge)
 		{
-			m_resizing = true;
+			m_isResizing = true;
 		}
 		else
 		{
-			m_moving = true;
-			m_movestart = pos;
+			m_isMoving = true;
+			m_moveStartPos = pos;
 		}
 	}
 }
 void Canvas::mouseMoving(const QPointF& pos)
 {
-	if (!m_pressed)
+	if (!m_isPressed)
 	{
 		if (m_type == Type::None)
 		{
@@ -235,23 +235,23 @@ void Canvas::mouseMoving(const QPointF& pos)
 			setCursor(Qt::CrossCursor);
 		}
 	}
-	else if (m_creating)
+	else if (m_isCreating)
 	{
 		m_manager->drawItemShape(pos);
 	}
-	else if (m_resizing)
+	else if (m_isResizing)
 	{
 		m_manager->changeItemShape(m_edge, pos);
 	}
-	else if (m_moving)
+	else if (m_isMoving)
 	{
-		m_manager->moveItem(m_movestart, pos);
-		m_movestart = pos;
+		m_manager->moveItem(m_moveStartPos, pos);
+		m_moveStartPos = pos;
 	}
-	else if (m_rubberband->isVisible())
+	else if (m_rubberBand->isVisible())
 	{
-		m_rubberband->setGeometry(QRect((m_movestart * m_scale).toPoint(), (pos * m_scale).toPoint()).normalized());
-		m_manager->selectItems(QRectF(m_movestart, pos));
+		m_rubberBand->setGeometry(QRect((m_moveStartPos * m_scale).toPoint(), (pos * m_scale).toPoint()).normalized());
+		m_manager->selectItems(QRectF(m_moveStartPos, pos));
 	}
 }
 void Canvas::paintEvent(QPaintEvent* event)
@@ -272,66 +272,54 @@ void Canvas::contextMenuEvent(QContextMenuEvent* event)
 void Canvas::setRightButtonMenu(QContextMenuEvent* event)
 {
 	QPointF pos(event->pos().x() / m_scale, event->pos().y() / m_scale);
-	QMenu menu(this);
-	QAction* selectall = menu.addAction(QString::fromLocal8Bit("全选"));
-	connect(selectall, &QAction::triggered, this, &Canvas::selectAll);
-	selectall->setShortcut(Qt::Key_A);
+	QMenu menu;
+	QAction* selectAll = menu.addAction(QString::fromLocal8Bit("全选"));
+	connect(selectAll, &QAction::triggered, this, &Canvas::selectAll);
 
 	QAction* undo = menu.addAction(QString::fromLocal8Bit("撤销(undo)"));
 	connect(undo, &QAction::triggered, this, &Canvas::undo);
-	undo->setShortcut(Qt::Key_Z);
 
 	QAction* redo = menu.addAction(QString::fromLocal8Bit("重做(redo)"));
 	connect(redo, &QAction::triggered, this, &Canvas::redo);
-	redo->setShortcut(Qt::Key_Y);
 
 	QAction* cut = menu.addAction(QString::fromLocal8Bit("剪切"));
 	connect(cut, &QAction::triggered, [this, &pos]
 		{
 			this->cut(pos);
 		});
-	cut->setShortcut(Qt::Key_X);
 
 	QAction* copy = menu.addAction(QString::fromLocal8Bit("复制"));
 	connect(copy, &QAction::triggered, [this, &pos]
 		{
 			this->copy(pos);
 		});
-	copy->setShortcut(Qt::Key_C);
 
 	QAction* paste = menu.addAction(QString::fromLocal8Bit("粘贴"));
 	connect(paste, &QAction::triggered, [this, &pos]
 		{
 			this->paste(pos);
 		});
-	paste->setShortcut(Qt::Key_V);
 
 	QAction* replace = menu.addAction(QString::fromLocal8Bit("复写"));
 	connect(replace, &QAction::triggered, [this, &pos]
 		{
 			this->replace(pos);
 		});
-	replace->setShortcut(Qt::Key_D);
 
-	QAction* deleteitem = menu.addAction(QString::fromLocal8Bit("删除"));
-	connect(deleteitem, &QAction::triggered, this, &Canvas::deleteItem);
-	deleteitem->setShortcut(Qt::Key_Backspace);
+	QAction* deleteItem = menu.addAction(QString::fromLocal8Bit("删除"));
+	connect(deleteItem, &QAction::triggered, this, &Canvas::deleteItem);
 
 	QAction* up = menu.addAction(QString::fromLocal8Bit("置上一层"));
 	connect(up, &QAction::triggered, this, &Canvas::upLayer);
-	up->setShortcut(Qt::Key_Up);
 
 	QAction* down = menu.addAction(QString::fromLocal8Bit("置下一层"));
 	connect(down, &QAction::triggered, this, &Canvas::downLayer);
-	down->setShortcut(Qt::Key_Down);
 
 	QAction* left = menu.addAction(QString::fromLocal8Bit("置最前"));
 	connect(left, &QAction::triggered, this, &Canvas::upMost);
-	left->setShortcut(Qt::Key_Left);
 
 	QAction* right = menu.addAction(QString::fromLocal8Bit("置最后"));
 	connect(right, &QAction::triggered, this, &Canvas::downMost);
-	right->setShortcut(Qt::Key_Right);
 
 	if (!m_manager->isItemAt(pos))
 	{
@@ -339,7 +327,7 @@ void Canvas::setRightButtonMenu(QContextMenuEvent* event)
 		cut->setEnabled(false);
 		copy->setEnabled(false);
 		replace->setEnabled(false);
-		deleteitem->setEnabled(false);
+		deleteItem->setEnabled(false);
 		up->setEnabled(false);
 		down->setEnabled(false);
 		left->setEnabled(false);

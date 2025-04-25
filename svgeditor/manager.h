@@ -2,16 +2,16 @@
 #define MANAGER_H_
 
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
-#include <QPainter>
-#include <QRectF>
-#include <QPointF>
 #include <QColor>
+#include <QPainter>
+#include <QPointF>
+#include <QRectF>
 
-#include "element.h"
 #include "commandhistory.h"
+#include "element.h"
 
 class Manager
 {
@@ -56,11 +56,11 @@ public:
 	std::string toSvgElements() const;
 private:
 	std::vector<std::shared_ptr<Element>> m_items;
-	std::shared_ptr<Element> m_selecteditem;
-	std::vector<std::shared_ptr<Element>> m_clipboard;
-	std::shared_ptr<Element> m_singleboard;
+	std::shared_ptr<Element> m_selectedItem;
+	std::vector<std::shared_ptr<Element>> m_clipBoard;
+	std::shared_ptr<Element> m_singleBoard;
 	CommandHistory& m_history;
-	QPointF m_copystart;
+	QPointF m_copyStartPos;
 };
 
 #endif // !MANAGER_H_

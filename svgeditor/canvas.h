@@ -3,17 +3,17 @@
 
 #include <memory>
 
-#include <QWidget>
+#include <QColor>
+#include <QContextMenuEvent>
 #include <QMouseEvent>
 #include <QPaintEvent>
-#include <QContextMenuEvent>
-#include <QColor>
 #include <QPointF>
 #include <QRubberBand>
+#include <QWidget>
 
+#include "commandhistory.h"
 #include "element.h"
 #include "manager.h"
-#include "commandhistory.h"
 
 class Canvas :public QWidget
 {
@@ -64,16 +64,16 @@ protected:
 	void changeCursor(Edge edge);
 private:
 	std::shared_ptr<Manager> m_manager;
-	bool m_pressed;
-	bool m_creating;
-	bool m_resizing;
-	bool m_moving;
-	QPointF m_movestart;
+	bool m_isPressed;
+	bool m_isCreating;
+	bool m_isResizing;
+	bool m_isMoving;
+	QPointF m_moveStartPos;
 	Type m_type;
 	Edge m_edge;
 	double m_scale;
 	CommandHistory& m_history;
-	QRubberBand* m_rubberband;
+	QRubberBand* m_rubberBand;
 };
 
 #endif // !CANVAS_H_

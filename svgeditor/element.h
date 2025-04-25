@@ -33,13 +33,13 @@ public:
 	void setBrush(const QBrush& brush);
 protected:
 	Type m_type;
-	QRectF m_boundingrect;
+	QRectF m_boundingRect;
 	QPainterPath m_path;
 	QPen m_pen;
 	QBrush m_brush;
 };
 
-class Element:public ElementBase
+class Element :public ElementBase
 {
 public:
 	Element() = default;
@@ -69,7 +69,7 @@ class Path :public Element
 {
 public:
 	Path() = default;
-    explicit Path(const QPointF& pos);
+	explicit Path(const QPointF& pos);
 	Path(const ElementBase& element);
 	Path(const Path&) = default;
 	Path(Path&&) = default;

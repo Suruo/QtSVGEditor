@@ -2,7 +2,7 @@
 
 #include "command.h"
 
-Manager::Manager() :m_selecteditem(nullptr), m_singleboard(nullptr), m_history(CommandHistory::getInstance())
+Manager::Manager() :m_selectedItem(nullptr), m_singleBoard(nullptr), m_history(CommandHistory::getInstance())
 {
 }
 std::shared_ptr<Element> Manager::clone(std::shared_ptr<Element> item)
@@ -37,12 +37,12 @@ std::shared_ptr<Element> Manager::clone(std::shared_ptr<Element> item)
 }
 void Manager::copy(const QPointF& pos)
 {
-	m_singleboard = nullptr;
-	m_clipboard.clear();
-	m_copystart = pos;
-	if (m_selecteditem != nullptr)
+	m_singleBoard = nullptr;
+	m_clipBoard.clear();
+	m_copyStartPos = pos;
+	if (m_selectedItem != nullptr)
 	{
-		m_singleboard = clone(m_selecteditem);
+		m_singleBoard = clone(m_selectedItem);
 	}
 	else
 	{
@@ -50,27 +50,27 @@ void Manager::copy(const QPointF& pos)
 			{
 				if (item != nullptr)
 					if (item->isSelected())					
-						m_clipboard.push_back(clone(item));					
+						m_clipBoard.push_back(clone(item));					
 			});
 	}
 }
 bool Manager::isAnyOneCopied()
 {
-	return m_singleboard != nullptr || !m_clipboard.empty();
+	return m_singleBoard != nullptr || !m_clipBoard.empty();
 }
 void Manager::removeItem()
 {
-	if (m_selecteditem != nullptr)
+	if (m_selectedItem != nullptr)
 	{
 		for (size_t i = 0; i < m_items.size(); ++i)
 		{
-			if (m_items.at(i) == m_selecteditem)
+			if (m_items.at(i) == m_selectedItem)
 			{
 				m_history.addCommand(std::make_shared<Remove>(m_items, i));
 				m_items.at(i) = nullptr;
 			}
 		}
-		m_selecteditem = nullptr;
+		m_selectedItem = nullptr;
 	}
 	else
 	{
@@ -90,22 +90,22 @@ void Manager::removeItem()
 }
 void Manager::paste(const QPointF& pos)
 {
-	if (m_singleboard != nullptr)
+	if (m_singleBoard != nullptr)
 	{
-		std::shared_ptr<Element> cloneptr = clone(m_singleboard);
-		cloneptr->translate(m_copystart, pos);
+		std::shared_ptr<Element> cloneptr = clone(m_singleBoard);
+		cloneptr->translate(m_copyStartPos, pos);
 		cloneptr->setSelected(true);
 		m_items.push_back(cloneptr);
 		m_history.addCommand(std::make_shared<Add>(m_items, m_items.size() - 1));
-		m_selecteditem = cloneptr;
+		m_selectedItem = cloneptr;
 	}
 	else
 	{
 		std::vector<std::shared_ptr<Command>> commands;
-		std::for_each(m_clipboard.begin(), m_clipboard.end(), [this, &pos, &commands](std::shared_ptr<Element> item)
+		std::for_each(m_clipBoard.begin(), m_clipBoard.end(), [this, &pos, &commands](std::shared_ptr<Element> item)
 			{
 				std::shared_ptr<Element> cloneptr = clone(item);
-				cloneptr->translate(m_copystart, pos);
+				cloneptr->translate(m_copyStartPos, pos);
 				cloneptr->setSelected(true);
 				m_items.push_back(cloneptr);
 				commands.push_back(std::make_shared<Add>(m_items, m_items.size() - 1));
@@ -121,7 +121,7 @@ void Manager::upLayer()
 	size_t i;
 	for (i = 0; i < m_items.size(); ++i)
 	{
-		if (m_items.at(i) == m_selecteditem)
+		if (m_items.at(i) == m_selectedItem)
 			break;
 	}
 	if (i + 1 != m_items.size())
@@ -137,7 +137,7 @@ void Manager::downLayer()
 	size_t i;
 	for (i = 0; i < m_items.size(); ++i)
 	{
-		if (m_items.at(i) == m_selecteditem)
+		if (m_items.at(i) == m_selectedItem)
 			break;
 	}
 	if (static_cast<int>(i) - 1 >= 0)
@@ -153,7 +153,7 @@ void Manager::upMost()
 		return;
 	for (i = 0; i < m_items.size(); ++i)
 	{
-		if (m_items.at(i) == m_selecteditem)
+		if (m_items.at(i) == m_selectedItem)
 			break;
 	}
 	m_history.addCommand(std::make_shared<SwapLayer>(m_items, i, m_items.size() - 1));
@@ -166,7 +166,7 @@ void Manager::downMost()
 		return;
 	for (i = 0; i < m_items.size(); ++i)
 	{
-		if (m_items.at(i) == m_selecteditem)
+		if (m_items.at(i) == m_selectedItem)
 			break;
 	}
 	m_history.addCommand(std::make_shared<SwapLayer>(m_items, i, 0));
@@ -201,9 +201,9 @@ void Manager::addItem(Type type, const QPointF& pos)
 	default:
 		break;
 	}
-	m_selecteditem = m_items.back();
+	m_selectedItem = m_items.back();
 	m_history.addCommand(std::make_shared<Add>(m_items, m_items.size() - 1));
-	m_selecteditem->setSelected(true);
+	m_selectedItem->setSelected(true);
 }
 void Manager::createItem(Type type, const QRectF& rect, const QPainterPath& path, const QPen& pen, const QBrush& brush)
 {
@@ -236,40 +236,40 @@ void Manager::createItem(Type type, const QRectF& rect, const QPainterPath& path
 }
 void Manager::setSelectedPenWidth(double width)
 {
-	if (m_selecteditem != nullptr)
+	if (m_selectedItem != nullptr)
 	{
-		QPen pen = m_selecteditem->getPen();
+		QPen pen = m_selectedItem->getPen();
 		pen.setWidthF(width);
-		m_history.addCommand(std::make_shared<ChangePen>(m_selecteditem, pen));
-		m_selecteditem->setPen(pen);
+		m_history.addCommand(std::make_shared<ChangePen>(m_selectedItem, pen));
+		m_selectedItem->setPen(pen);
 	}
 }
 void Manager::setSelectedPenColor(const QColor& color)
 {
-	if (m_selecteditem != nullptr)
+	if (m_selectedItem != nullptr)
 	{
-		QPen pen = m_selecteditem->getPen();
+		QPen pen = m_selectedItem->getPen();
 		pen.setColor(color);
-		m_history.addCommand(std::make_shared<ChangePen>(m_selecteditem, pen));
-		m_selecteditem->setPen(pen);
+		m_history.addCommand(std::make_shared<ChangePen>(m_selectedItem, pen));
+		m_selectedItem->setPen(pen);
 	}
 }
 void Manager::setSelectedPenStyle(Qt::PenStyle style)
 {
-	if (m_selecteditem != nullptr)
+	if (m_selectedItem != nullptr)
 	{
-		QPen pen = m_selecteditem->getPen();
+		QPen pen = m_selectedItem->getPen();
 		pen.setStyle(style);
-		m_history.addCommand(std::make_shared<ChangePen>(m_selecteditem, pen));
-		m_selecteditem->setPen(pen);
+		m_history.addCommand(std::make_shared<ChangePen>(m_selectedItem, pen));
+		m_selectedItem->setPen(pen);
 	}
 }
 void Manager::setSelectedBrushColor(const QColor& color)
 {
-	if (m_selecteditem != nullptr)
+	if (m_selectedItem != nullptr)
 	{
-		m_history.addCommand(std::make_shared<ChangeBrush>(m_selecteditem, QBrush(color)));
-		m_selecteditem->setBrush(QBrush(color));
+		m_history.addCommand(std::make_shared<ChangeBrush>(m_selectedItem, QBrush(color)));
+		m_selectedItem->setBrush(QBrush(color));
 	}
 }
 void Manager::paint(QPainter* painter)
@@ -305,8 +305,8 @@ bool Manager::isItemAt(const QPointF& pos) const
 }
 void Manager::selectItemAt(const QPointF& pos)
 {
-	if (m_selecteditem != nullptr)
-		if (m_selecteditem->isPosIn(pos))
+	if (m_selectedItem != nullptr)
+		if (m_selectedItem->isPosIn(pos))
 			return;
 	cancelSelected();
 	for (auto iter = m_items.rbegin(); iter != m_items.rend(); ++iter)
@@ -315,7 +315,7 @@ void Manager::selectItemAt(const QPointF& pos)
 			if ((*iter)->isPosIn(pos))
 			{
 				(*iter)->setSelected(true);
-				m_selecteditem = *iter;
+				m_selectedItem = *iter;
 				return;
 			}
 	}
@@ -323,7 +323,7 @@ void Manager::selectItemAt(const QPointF& pos)
 }
 std::shared_ptr<Element> Manager::getSelectedItem() const
 {
-	return m_selecteditem;
+	return m_selectedItem;
 }
 void Manager::selectItems(const QRectF& rect)
 {
@@ -351,11 +351,11 @@ void Manager::cancelSelected()
 			if (item != nullptr)
 				item->setSelected(false);
 		});
-	m_selecteditem = nullptr;
+	m_selectedItem = nullptr;
 }
 bool Manager::isOnlyOneSelected() const
 {
-	return m_selecteditem != nullptr;
+	return m_selectedItem != nullptr;
 }
 bool Manager::isAnyOneSelected() const
 {
@@ -369,8 +369,8 @@ bool Manager::isAnyOneSelected() const
 }
 void Manager::moveItem(const QPointF& start, const QPointF& end)
 {
-	if (m_selecteditem != nullptr)
-		m_selecteditem->translate(start, end);
+	if (m_selectedItem != nullptr)
+		m_selectedItem->translate(start, end);
 	else
 		std::for_each(m_items.begin(), m_items.end(), [&](std::shared_ptr<Element> item)
 			{
@@ -382,17 +382,17 @@ void Manager::moveItem(const QPointF& start, const QPointF& end)
 Edge Manager::recognizeMousePos(const QPointF& pos)
 {
 	
-	return m_selecteditem != nullptr ? m_selecteditem->recognizeMousePos(pos) : Edge::NoEdge;
+	return m_selectedItem != nullptr ? m_selectedItem->recognizeMousePos(pos) : Edge::NoEdge;
 }
 void Manager::drawItemShape(const QPointF& pos)
 {
-	if (m_selecteditem != nullptr)
-		m_selecteditem->drawShape(pos);
+	if (m_selectedItem != nullptr)
+		m_selectedItem->drawShape(pos);
 }
 void Manager::changeItemShape(Edge edge, const QPointF& pos)
 {
-	if (m_selecteditem != nullptr)
-		m_selecteditem->changeShape(edge, pos);
+	if (m_selectedItem != nullptr)
+		m_selectedItem->changeShape(edge, pos);
 }
 std::string Manager::toSvgElements() const
 {

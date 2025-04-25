@@ -28,7 +28,7 @@ private:
 	std::vector<std::shared_ptr<Command>> m_did;
 	long long m_index;
 	std::vector<size_t> m_num;
-	long long m_numindex;
+	long long m_numIndex;
 };
 #endif // !COMMANDHISTORY_H_
 
