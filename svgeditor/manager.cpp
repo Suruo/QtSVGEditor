@@ -49,8 +49,8 @@ void Manager::copy(const QPointF& pos)
 		std::for_each(m_items.begin(), m_items.end(), [this](std::shared_ptr<Element> item)
 			{
 				if (item != nullptr)
-					if (item->isSelected())					
-						m_clipBoard.push_back(clone(item));					
+					if (item->isSelected())
+						m_clipBoard.push_back(clone(item));
 			});
 	}
 }
@@ -78,7 +78,7 @@ void Manager::removeItem()
 		for (size_t i = 0; i < m_items.size(); ++i)
 		{
 			if (m_items.at(i) != nullptr)
-				if(m_items.at(i)->isSelected())
+				if (m_items.at(i)->isSelected())
 				{
 					commands.push_back(std::make_shared<Remove>(m_items, i));
 					m_items.at(i) = nullptr;
@@ -127,7 +127,7 @@ void Manager::upLayer()
 	if (i + 1 != m_items.size())
 	{
 		m_history.addCommand(std::make_shared<SwapLayer>(m_items, i, i + 1));
-		m_items.at(i).swap(m_items.at(i + 1));	
+		m_items.at(i).swap(m_items.at(i + 1));
 	}
 }
 void Manager::downLayer()
@@ -144,7 +144,7 @@ void Manager::downLayer()
 	{
 		m_history.addCommand(std::make_shared<SwapLayer>(m_items, i, i - 1));
 		m_items.at(i).swap(m_items.at(i - 1));
-	}	
+	}
 }
 void Manager::upMost()
 {
@@ -290,7 +290,7 @@ void Manager::paint(QPainter* painter)
 					painter->drawRect(item->getBoungdingRect());
 				}
 				painter->restore();
-			}	
+			}
 		});
 }
 bool Manager::isItemAt(const QPointF& pos) const
@@ -332,14 +332,14 @@ void Manager::selectItems(const QRectF& rect)
 		{
 			if (item != nullptr)
 				if (rect.intersects(item->getBoungdingRect()))
-					item->setSelected(true);		
+					item->setSelected(true);
 		});
 }
 void Manager::selectAll()
 {
 	cancelSelected();
 	std::for_each(m_items.begin(), m_items.end(), [](std::shared_ptr<Element> item)
-		{	
+		{
 			if (item != nullptr)
 				item->setSelected(true);
 		});
@@ -375,13 +375,13 @@ void Manager::moveItem(const QPointF& start, const QPointF& end)
 		std::for_each(m_items.begin(), m_items.end(), [&](std::shared_ptr<Element> item)
 			{
 				if (item != nullptr)
-					if(item->isSelected())
+					if (item->isSelected())
 						item->translate(start, end);
 			});
 }
 Edge Manager::recognizeMousePos(const QPointF& pos)
 {
-	
+
 	return m_selectedItem != nullptr ? m_selectedItem->recognizeMousePos(pos) : Edge::NoEdge;
 }
 void Manager::drawItemShape(const QPointF& pos)
@@ -399,7 +399,8 @@ std::string Manager::toSvgElements() const
 	std::string elements;
 	std::for_each(m_items.begin(), m_items.end(), [&elements](std::shared_ptr<Element> iter)
 		{
-			elements += ("\t" + iter->toSvgElement() + "\n");
+			if (iter != nullptr)
+				elements += ("\t" + iter->toSvgElement() + "\n");
 		});
 	return elements;
 }
